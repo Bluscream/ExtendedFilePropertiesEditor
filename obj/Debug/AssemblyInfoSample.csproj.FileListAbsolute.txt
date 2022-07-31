@@ -1,0 +1,11 @@
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\bin\Debug\AssemblyInfoSample.dll
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\bin\Debug\AssemblyInfoSample.pdb
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\bin\Debug\LogicNP.EZShellExtensions.dll
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\bin\Debug\LogicNP.EZShellExtensions.xml
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.csproj.AssemblyReference.cache
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.AssemblyInfo.resources
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.csproj.GenerateResource.cache
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.csproj.CoreCompileInputs.cache
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.csproj.CopyComplete
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.dll
+C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\Samples\C#\PropertySheetExtensionSample\obj\Debug\AssemblyInfoSample.pdb
