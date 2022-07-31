@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace EFPE {
-    [Guid("6B970FF5-435F-4c75-B8BF-3EBB7A7BB0B2"), ComVisible(true)]
+    [Guid("6B970FF5-435F-4c75-B8BF-3EBB7A7BB0B3"), ComVisible(true)]
     public class EFPE : PropertySheetExtension {
         private System.Windows.Forms.ColumnHeader propColumn;
         private System.Windows.Forms.ListView lvProp;

@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyInfoSample", "AssemblyInfoSample.csproj", "{1C0D0E19-2D33-40FA-9707-741EDDD8D7B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extended File Properties Editor", "Extended File Properties Editor.csproj", "{1C0D0E19-2D33-40FA-9707-741EDDD8D7B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -130,11 +130,11 @@
     <Compile Include="AsmInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AssemblyInfo.cs">
+    <Compile Include="EFPE.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <EmbeddedResource Include="AssemblyInfo.resx">
-      <DependentUpon>AssemblyInfo.cs</DependentUpon>
+    <EmbeddedResource Include="EFPE.resx">
+      <DependentUpon>EFPE.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
