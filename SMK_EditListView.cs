@@ -2,11 +2,25 @@ using System;
 using System.Windows.Forms;
 using System.Drawing;
 
-namespace WindowsApplication1
+namespace UI
 {
 	/// <summary>
 	/// Summary description for SMK_EditListView.
 	/// </summary>
+
+	public delegate void ItemEditedEvent(object source, ItemEditArgs e);
+	public class ItemEditArgs : EventArgs {
+		private object EventInfo;
+		public bool success = true;
+		public ItemEditArgs(object item, ref bool success) {
+			EventInfo = item;
+			this.success = success;
+		}
+		public object GetInfo() {
+			return EventInfo;
+		}
+	}
+
 	public class SMK_EditListView : ListView 
 	{
 		private ListViewItem li;
@@ -20,6 +34,7 @@ namespace WindowsApplication1
 		private System.Windows.Forms.ColumnHeader columnHeader2;
 		private System.Windows.Forms.ColumnHeader columnHeader3;
 		private System.Windows.Forms.ColumnHeader columnHeader4;
+		public event ItemEditedEvent OnItemEdited;
 
 		public SMK_EditListView()
 		{
@@ -72,7 +87,7 @@ namespace WindowsApplication1
 		{
 			if ( e.KeyChar == 13 || e.KeyChar == 27 )
 			{
-				cmbBox.Hide();
+				OnEditingCanceled();
 			}
 		}
 
@@ -93,25 +108,31 @@ namespace WindowsApplication1
 	
 		private void EditOver(object sender, System.Windows.Forms.KeyPressEventArgs e)
 		{
-			if ( e.KeyChar == 13 ) 
-			{
-				li.SubItems[subItemSelected].Text = editBox.Text;
-				editBox.Hide();
+			if ( e.KeyChar == 13 ) {
+				OnEditingFinished();
 			}
 
-			if ( e.KeyChar == 27 ) 
-				editBox.Hide();
+			if (e.KeyChar == 27) OnEditingCanceled();
 		}
 
 		private void FocusOver(object sender, System.EventArgs e)
 		{
-			li.SubItems[subItemSelected].Text = editBox.Text;
+			OnEditingFinished();
+		}
+		private void OnEditingCanceled() {
+			editBox.Hide();
+		}
+		private void OnEditingFinished() {
+			var success = true;
+			if (OnItemEdited != null) {
+				OnItemEdited(this, new ItemEditArgs(li.SubItems[subItemSelected], ref success));
+			}
+			if (success) li.SubItems[subItemSelected].Text = editBox.Text;
 			editBox.Hide();
 		}
 
-		public  void SMKDoubleClick(object sender, System.EventArgs e)
+		public void SMKDoubleClick(object sender, System.EventArgs e)
 		{
-			// Check the subitem clicked .
 			int nStart = X ;
 			int spos = 0 ; 
 			int epos = this.Columns[0].Width ;
@@ -127,30 +148,14 @@ namespace WindowsApplication1
 				epos += this.Columns[i].Width;
 			}
 
-			Console.WriteLine("SUB ITEM SELECTED = " + li.SubItems[subItemSelected].Text);
 			subItemText = li.SubItems[subItemSelected].Text ;
-
-			string colName = this.Columns[subItemSelected].Text ;
-			if ( colName == "Continent" ) 
-			{
-				Rectangle r = new Rectangle(spos , li.Bounds.Y , epos , li.Bounds.Bottom);
-				cmbBox.Size  = new System.Drawing.Size(epos - spos , li.Bounds.Bottom-li.Bounds.Top);
-				cmbBox.Location = new System.Drawing.Point(spos , li.Bounds.Y);
-				cmbBox.Show() ;
-				cmbBox.Text = subItemText;
-				cmbBox.SelectAll() ;
-				cmbBox.Focus();
-			}
-			else
-			{
-				Rectangle r = new Rectangle(spos , li.Bounds.Y , epos , li.Bounds.Bottom);
-				editBox.Size  = new System.Drawing.Size(epos - spos , li.Bounds.Bottom-li.Bounds.Top);
-				editBox.Location = new System.Drawing.Point(spos , li.Bounds.Y);
-				editBox.Show() ;
-				editBox.Text = subItemText;
-				editBox.SelectAll() ;
-				editBox.Focus();
-			}
+			Rectangle r = new Rectangle(spos , li.Bounds.Y , epos , li.Bounds.Bottom);
+			editBox.Size  = new System.Drawing.Size(epos - spos , li.Bounds.Bottom-li.Bounds.Top);
+			editBox.Location = new System.Drawing.Point(spos , li.Bounds.Y);
+			editBox.Show() ;
+			editBox.Text = subItemText;
+			editBox.SelectAll() ;
+			editBox.Focus();
 		}
 
 		public void SMKMouseDown(object sender, System.Windows.Forms.MouseEventArgs e)

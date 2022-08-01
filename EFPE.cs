@@ -5,15 +5,9 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
+using Bluscream;
+using UI;
 namespace EFPE {
-    public static class Extensions {
-        public static string ToJSON(this object obj, bool indented = true) {
-            return JsonConvert.SerializeObject(obj, (indented ? Formatting.Indented : Formatting.None), new JsonConverter[] { new StringEnumConverter() });
-        }
-    }
 
     [TargetExtension(SpecialProgIDTargets.AllFiles, true)]
     [TargetExtension(".*", true)]
@@ -31,13 +25,15 @@ namespace EFPE {
 
         private void InitializeComponent() {
             System.Resources.ResourceManager resources = new System.Resources.ResourceManager(typeof(EFPE));
-            this.lvProp = new System.Windows.Forms.ListView();
+            this.lvProp = new SMK_EditListView() as SMK_EditListView; // new ListView();
+            // this.lvProp.OnItemEdited += OnItemEdited;
             this.propColumn = new System.Windows.Forms.ColumnHeader();
             this.ValueColumn = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // lvProp
             // 
+            this.lvProp.Columns.Clear();
             this.lvProp.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
                                                                                      this.propColumn,
                                                                                      this.ValueColumn});
@@ -76,49 +72,70 @@ namespace EFPE {
         private void XYZPropertySheetExtension_Load(object sender, System.EventArgs e) {
             try {
                 var file = ShellFile.FromFilePath(TargetFiles[0]);
-
-                // Read and Write:
                 foreach (var prop in file.Properties.DefaultPropertyCollection) {
-                    if (prop.Description is null || prop.Description.DisplayName is null) continue;
+                    if (prop.Description?.DisplayName is null) continue;
                     if (prop.ValueAsObject is null) continue;
                     try {
                         //if (prop.ValueType == typeof(System.String[])) {
                         //    AddProperty(prop.Description.DisplayName, string.Join(", ", prop.ValueAsObject));
                         //} else {
-                            AddProperty(prop.Description.DisplayName, prop.ValueAsObject);
+                            AddProperty(prop);
                         //}
                     } catch (Exception ex) {
                         AddProperty(prop.Description.DisplayName, $"[E] {ex.Message}");
                     }
                 }
-
-                //file.Properties.System.Author.Value = new string[] { "Author #1", "Author #2" };
-                //file.Properties.System.Title.Value = "Example Title";
-
-                //// Alternate way to Write:
-
-                //ShellPropertyWriter propertyWriter = file.Properties.GetPropertyWriter();
-                //propertyWriter.WriteProperty(SystemProperties.System.Author, new string[] { "Author" });
-                //propertyWriter.Close();
-
             } catch (Exception ex) {
                 AddProperty("ERROR : ", ex.Message);
             }
-
             foreach (ColumnHeader c in lvProp.Columns) {
                 c.Width = -2;
             }
-
         }
 
-        void AddProperty(string propName, object propValue) {
+        void AddProperty(string propName, string propValue, object tag = null) {
             if (string.IsNullOrWhiteSpace(propName) || propValue is null) return;
             ListViewItem item = lvProp.Items.Add(propName);
-            item.SubItems.Add(propValue.ToJSON());
+            item.Tag = tag;
+            item.SubItems.Add(propValue);
+        }
+
+        void AddProperty(IShellProperty prop) {
+            if (prop.Description is null || prop.Description.DisplayName is null) return;
+            if (prop.ValueAsObject is null) return;
+            AddProperty(prop.Description.DisplayName, prop.ValueAsObject.ToJSON(), prop);
+        }
+
+        public void OnItemEdited(object item, bool success) {
+
         }
 
         private void lvProp_SelectedIndexChanged(object sender, System.EventArgs e) {
 
+        }
+
+        protected override NotifyResult OnApply() {
+            var result = NotifyResult.NoError;
+            foreach (var _file in TargetFiles) {
+                var file = ShellFile.FromFilePath(_file);
+                //file.Properties.System.Author.Value = new string[] { "Author #1", "Author #2" };
+                //file.Properties.System.Title.Value = "Example Title";
+                ShellPropertyWriter propertyWriter = file.Properties.GetPropertyWriter();
+                foreach (ListViewItem item in lvProp.Items) {
+                    try {
+                        if (item.Tag is null) continue;
+                        var tag = item.Tag as IShellProperty;
+                        if (tag.ValueAsObject.ToJSON() != item.SubItems[0].Text) {
+                            //propertyWriter.WriteProperty(tag.CanonicalName, item.SubItems[0].Text.FromJSON());
+                        }
+                    } catch (Exception ex) {
+                        AddProperty("ERROR", ex.Message);
+                        result = NotifyResult.Invalid;
+                    }
+                }
+                propertyWriter.Close();
+            }
+            return result;
         }
 
         [ComRegisterFunction]
