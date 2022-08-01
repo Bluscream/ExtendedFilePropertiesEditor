@@ -44,9 +44,9 @@ namespace EFPE {
             this.Name = "EFPE";
             this.Text = "Properties";
             this.Load += new System.EventHandler(this.XYZPropertySheetExtension_Load);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
-            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
+            //this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
+            //this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
+            //this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
             this.ResumeLayout(false);
 
         }
