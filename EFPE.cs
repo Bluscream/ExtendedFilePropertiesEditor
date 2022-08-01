@@ -120,11 +120,10 @@ namespace EFPE {
             try {
                 if (prop.ValueAsObject.ToJSON() != json) {
                     if (prop.CanonicalName == file.Properties.System.Author.CanonicalName) {
-                        file.Properties.System.Author.Value = text.FromJSON();
+                        file.Properties.System.Author.Value = json.FromJSON();
                     } else if (prop.CanonicalName == file.Properties.System.FileVersion.CanonicalName) {
-                        file.Properties.System.FileVersion.Value = text.FromJSON();
+                        file.Properties.System.FileVersion.Value = json.FromJSON();
                     }
-                    //propertyWriter.WriteProperty(tag.CanonicalName, item.SubItems[0].Text.FromJSON());
                 }
             } catch (Exception ex) {
                 MessageBox.Show($"Failed to set prop \"{prop.CanonicalName}\"\n\n{ex.ToString()}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -138,24 +137,12 @@ namespace EFPE {
             var result = NotifyResult.NoError;
             foreach (var _file in TargetFiles) {
                 var file = ShellFile.FromFilePath(_file);
-                //file.Properties.System.Author.Value = new string[] { "Author #1", "Author #2" };
-                //file.Properties.System.Title.Value = "Example Title";
-                //ShellPropertyWriter propertyWriter = file.Properties.GetPropertyWriter();
                 foreach (ListViewItem item in lvProp.Items) {
-                    try {
-                        if (item.Tag is null) continue;
-                        var text = item.SubItems[1].Text;
-                        var prop = item.Tag as IShellProperty;
-                        var success = SetProp(file, prop, text);
-                        if (!success)
-                            result = NotifyResult.Invalid;
-                    } catch (Exception ex) {
-                        // AddProperty("ERROR", ex.Message);
-                        MessageBox.Show($"{item.SubItems[0].Text}\n\n{ex.ToString()}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (item.Tag is null) continue;
+                    var success = SetProp(file, item.Tag as IShellProperty, item.SubItems[1].Text);
+                    if (!success)
                         result = NotifyResult.Invalid;
-                    }
                 }
-                //propertyWriter.Close();
             }
             return result;
         }
