@@ -23,7 +23,7 @@ namespace EFPE {
 
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EFPE));
-            this.lvProp = new WindowsApplication1.SMK_EditListView();
+            this.lvProp = new ListView(); //  new WindowsApplication1.SMK_EditListView() ?? 
             this.propColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ValueColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();

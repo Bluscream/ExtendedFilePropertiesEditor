@@ -108,6 +108,9 @@
   <PropertyGroup>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="LogicNP.EZShellExtensions">
       <Name>LogicNP.EZShellExtensions</Name>
@@ -165,7 +168,13 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent />
-    <PostBuildEvent />
+    <PreBuildEvent>taskkill /f /im explorer.exe 2&gt;nul 1&gt;nul
+start "" "C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\RegisterExtensionDotNet40.exe" -u "$(TargetPath)"
+SET ERRORLEVEL=0</PreBuildEvent>
+    <PostBuildEvent>ping -n 1 127.0.0.1 &gt; nul
+start "" "C:\Program Files (x86)\LogicNP Software\EZShellExtensions.Net 2013\RegisterExtensionDotNet40.exe" -i "$(TargetPath)"
+ping -n 1 127.0.0.1 &gt; nul
+explorer.exe
+SET ERRORLEVEL=0</PostBuildEvent>
   </PropertyGroup>
 </Project>
