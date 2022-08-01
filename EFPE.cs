@@ -60,20 +60,28 @@ namespace EFPE {
             // 
             this.Controls.AddRange(new System.Windows.Forms.Control[] {
                                                                           this.lvProp});
-            this.Icon = ((System.Drawing.Bitmap)(resources.GetObject("$this.Icon")));
+            // this.Icon = ((System.Drawing.Bitmap)(resources.GetObject("$this.Icon")));
             this.Name = "EFPE";
             this.Text = "Properties";
             this.Load += new System.EventHandler(this.XYZPropertySheetExtension_Load);
-            //this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
-            //this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
-            //this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
             this.ResumeLayout(false);
 
         }
 
         private void XYZPropertySheetExtension_Load(object sender, System.EventArgs e) {
+            LoadProperties();
+            foreach (ColumnHeader c in lvProp.Columns) {
+                c.Width = -2;
+            }
+        }
+
+        private void LoadProperties() {
             try {
                 var file = ShellFile.FromFilePath(TargetFiles[0]);
+                lvProp.Items.Clear();
                 foreach (var prop in file.Properties.DefaultPropertyCollection) {
                     if (prop.Description?.DisplayName is null) continue;
                     if (prop.ValueAsObject is null) continue;
@@ -81,7 +89,7 @@ namespace EFPE {
                         //if (prop.ValueType == typeof(System.String[])) {
                         //    AddProperty(prop.Description.DisplayName, string.Join(", ", prop.ValueAsObject));
                         //} else {
-                            AddProperty(prop);
+                        AddProperty(prop);
                         //}
                     } catch (Exception ex) {
                         AddProperty(prop.Description.DisplayName, $"[E] {ex.Message}");
@@ -90,8 +98,15 @@ namespace EFPE {
             } catch (Exception ex) {
                 AddProperty("ERROR : ", ex.Message);
             }
-            foreach (ColumnHeader c in lvProp.Columns) {
-                c.Width = -2;
+        }
+
+        private void ResetProperties() {
+            foreach (ListViewItem item in lvProp.Items) {
+                if (item.Tag is null) {
+                    item.Remove();
+                    continue;
+                }
+                item.SubItems[1].Text = ((IShellProperty)item.Tag).ValueAsObject.ToJSON();
             }
         }
 
@@ -105,7 +120,11 @@ namespace EFPE {
         void AddProperty(IShellProperty prop) {
             if (prop.Description is null || prop.Description.DisplayName is null) return;
             if (prop.ValueAsObject is null) return;
+#if DEBUG
+            AddProperty(prop.CanonicalName, prop.ValueAsObject.ToJSON(), prop);
+#else
             AddProperty(prop.Description.DisplayName, prop.ValueAsObject.ToJSON(), prop);
+#endif
         }
 
         public void OnItemEdited(object item, bool success) {
@@ -115,35 +134,54 @@ namespace EFPE {
         private void lvProp_SelectedIndexChanged(object sender, System.EventArgs e) {
 
         }
-
+#if ADMIN
+        [PrincipalPermission(SecurityAction.Demand, Role = @"BUILTIN\Administrators")]
+#endif
         private bool SetProp(ShellFile file, IShellProperty prop, string json) {
             try {
                 if (prop.ValueAsObject.ToJSON() != json) {
                     if (prop.CanonicalName == file.Properties.System.Author.CanonicalName) {
-                        file.Properties.System.Author.Value = json.FromJSON();
+                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.Author.ClearValue();
+                        else
+                            file.Properties.System.Author.Value = json.FromJSON();
                     } else if (prop.CanonicalName == file.Properties.System.FileVersion.CanonicalName) {
-                        file.Properties.System.FileVersion.Value = json.FromJSON();
+                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.FileVersion.ClearValue();
+                        else
+                            file.Properties.System.FileVersion.Value = json.FromJSON();
+                    } else if (prop.CanonicalName == file.Properties.System.Software.ProductName.CanonicalName) {
+                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.Software.ProductName.ClearValue();
+                        else
+                            file.Properties.System.Software.ProductName.Value = json.FromJSON();
+                    } else if (prop.CanonicalName == file.Properties.System.InternalName.CanonicalName) {
+                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.InternalName.ClearValue();
+                        else file.Properties.System.InternalName.Value = json.FromJSON();
+                    } else if (prop.CanonicalName == file.Properties.System.DateCreated.CanonicalName) {
+                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.DateCreated.ClearValue();
+                        else file.Properties.System.DateCreated.Value = json.FromJSON();
                     }
                 }
             } catch (Exception ex) {
-                MessageBox.Show($"Failed to set prop \"{prop.CanonicalName}\"\n\n{ex.ToString()}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Failed to set prop \"{prop.CanonicalName}\"\n\n{ex}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             return true;
         }
 
-        [PrincipalPermission(SecurityAction.Demand, Role = @"BUILTIN\Administrators")]
         protected override NotifyResult OnApply() {
             var result = NotifyResult.NoError;
             foreach (var _file in TargetFiles) {
                 var file = ShellFile.FromFilePath(_file);
                 foreach (ListViewItem item in lvProp.Items) {
                     if (item.Tag is null) continue;
-                    var success = SetProp(file, item.Tag as IShellProperty, item.SubItems[1].Text);
-                    if (!success)
-                        result = NotifyResult.Invalid;
+                    var prop = item.Tag as IShellProperty;
+                    var json = item.SubItems[1].Text;
+                    if (prop.ValueAsObject.ToJSON() != json) {
+                        if (!SetProp(file, prop, json))
+                            result = NotifyResult.Invalid;
+                    }
                 }
             }
+            if (result == NotifyResult.Invalid) ResetProperties();
             return result;
         }
 
