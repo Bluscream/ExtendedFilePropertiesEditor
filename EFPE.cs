@@ -1,13 +1,11 @@
+using Bluscream;
 using LogicNP.EZShellExtensions;
-using System;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using Bluscream;
+using System;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using UI;
-using System.Security.Permissions;
 
 namespace EFPE {
 
