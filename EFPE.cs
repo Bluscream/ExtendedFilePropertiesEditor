@@ -3,9 +3,15 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Shell;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 
 namespace EFPE {
-    [Guid("6B970FF5-435F-4c75-B8BF-3EBB7A7BB0B3"), ComVisible(true)]
+    [TargetExtension(SpecialProgIDTargets.AllFiles, true)]
+    [TargetExtension(".*", true)]
+    [TargetExtension(".dll", true)]
+    [TargetExtension(".exe", true)]
+    [TargetExtension(".lnk", true)]
     public class EFPE : PropertySheetExtension {
         private System.Windows.Forms.ColumnHeader propColumn;
         private System.Windows.Forms.ListView lvProp;
@@ -16,23 +22,11 @@ namespace EFPE {
         }
 
         private void InitializeComponent() {
-            System.Resources.ResourceManager resources = new System.Resources.ResourceManager(typeof(EFPE));
-            this.lvProp = new System.Windows.Forms.ListView();
-            this.propColumn = new System.Windows.Forms.ColumnHeader();
-            this.ValueColumn = new System.Windows.Forms.ColumnHeader();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EFPE));
+            this.lvProp = new WindowsApplication1.SMK_EditListView();
+            this.propColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.ValueColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
-            // 
-            // lvProp
-            // 
-            this.lvProp.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-                                                                                     this.propColumn,
-                                                                                     this.ValueColumn});
-            this.lvProp.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lvProp.Name = "lvProp";
-            this.lvProp.Size = new System.Drawing.Size(350, 450);
-            this.lvProp.TabIndex = 0;
-            this.lvProp.View = System.Windows.Forms.View.Details;
-            this.lvProp.SelectedIndexChanged += new System.EventHandler(this.lvProp_SelectedIndexChanged);
             // 
             // propColumn
             // 
@@ -44,32 +38,45 @@ namespace EFPE {
             this.ValueColumn.Text = "Value";
             this.ValueColumn.Width = 185;
             // 
-            // AssemblyInfo
+            // EFPE
             // 
-            this.Controls.AddRange(new System.Windows.Forms.Control[] {
-                                                                          this.lvProp});
             this.Icon = ((System.Drawing.Bitmap)(resources.GetObject("$this.Icon")));
-            this.Name = "Properties";
+            this.Name = "EFPE";
             this.Text = "Properties";
             this.Load += new System.EventHandler(this.XYZPropertySheetExtension_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
             this.ResumeLayout(false);
 
         }
 
         private void XYZPropertySheetExtension_Load(object sender, System.EventArgs e) {
             try {
-                Assembly a = Assembly.LoadFrom(TargetFiles[0]);
-                AddProperty("Location", a.Location);
-                AddProperty("CodeBase", a.CodeBase);
-                AddProperty("FullName", a.FullName);
-                AddProperty("Num Resources", a.GetManifestResourceNames().Length);
-                AddProperty("Num Defined Types", a.GetTypes().Length);
-                AddProperty("Num Exported Types", a.GetExportedTypes().Length);
-                AddProperty("Num Referenced Assemblies", a.GetReferencedAssemblies().Length);
+                var file = ShellFile.FromFilePath(TargetFiles[0]);
 
-            } catch (BadImageFormatException) {
-                AddProperty("ERROR : Not a .Net Assembly", string.Empty);
-            } catch (Exception) {
+                // Read and Write:
+                foreach (var prop in file.Properties.DefaultPropertyCollection) {
+                    if (prop.Description is null || prop.Description.DisplayName is null) continue;
+                    if (prop.ValueAsObject is null) continue;
+                    try {
+                        AddProperty(prop.Description.DisplayName, prop.ValueAsObject.ToString());
+                    } catch (Exception ex) {
+                        AddProperty(prop.Description.DisplayName, $"[E] {ex.Message}");
+                    }
+                }
+
+                //file.Properties.System.Author.Value = new string[] { "Author #1", "Author #2" };
+                //file.Properties.System.Title.Value = "Example Title";
+
+                //// Alternate way to Write:
+
+                //ShellPropertyWriter propertyWriter = file.Properties.GetPropertyWriter();
+                //propertyWriter.WriteProperty(SystemProperties.System.Author, new string[] { "Author" });
+                //propertyWriter.Close();
+
+            } catch (Exception ex) {
+                AddProperty("ERROR : ", ex.Message);
             }
 
             foreach (ColumnHeader c in lvProp.Columns) {
@@ -79,6 +86,7 @@ namespace EFPE {
         }
 
         void AddProperty(string propName, object propValue) {
+            if (string.IsNullOrWhiteSpace(propName) || propValue is null) return;
             ListViewItem item = lvProp.Items.Add(propName);
             item.SubItems.Add(propValue.ToString());
         }
@@ -97,6 +105,17 @@ namespace EFPE {
             PropertySheetExtension.UnRegisterExtension(typeof(EFPE));
         }
 
+        private void EFPE_KeyPress(object sender, KeyPressEventArgs e) {
+            if (string.IsNullOrWhiteSpace(e.KeyChar.ToString())) {
+                e.Handled = true;
+            }
+        }
 
+        private void EFPE_KeyEvent(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Enter) {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+            }
+        }
     }
 }
