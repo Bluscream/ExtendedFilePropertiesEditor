@@ -5,8 +5,16 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace EFPE {
+    public static class Extensions {
+        public static string ToJSON(this object obj, bool indented = true) {
+            return JsonConvert.SerializeObject(obj, (indented ? Formatting.Indented : Formatting.None), new JsonConverter[] { new StringEnumConverter() });
+        }
+    }
+
     [TargetExtension(SpecialProgIDTargets.AllFiles, true)]
     [TargetExtension(".*", true)]
     [TargetExtension(".dll", true)]
@@ -22,11 +30,23 @@ namespace EFPE {
         }
 
         private void InitializeComponent() {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EFPE));
-            this.lvProp = new ListView(); //  new WindowsApplication1.SMK_EditListView() ?? 
-            this.propColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.ValueColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            System.Resources.ResourceManager resources = new System.Resources.ResourceManager(typeof(EFPE));
+            this.lvProp = new System.Windows.Forms.ListView();
+            this.propColumn = new System.Windows.Forms.ColumnHeader();
+            this.ValueColumn = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
+            // 
+            // lvProp
+            // 
+            this.lvProp.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+                                                                                     this.propColumn,
+                                                                                     this.ValueColumn});
+            this.lvProp.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lvProp.Name = "lvProp";
+            this.lvProp.Size = new System.Drawing.Size(350, 450);
+            this.lvProp.TabIndex = 0;
+            this.lvProp.View = System.Windows.Forms.View.Details;
+            this.lvProp.SelectedIndexChanged += new System.EventHandler(this.lvProp_SelectedIndexChanged);
             // 
             // propColumn
             // 
@@ -38,8 +58,10 @@ namespace EFPE {
             this.ValueColumn.Text = "Value";
             this.ValueColumn.Width = 185;
             // 
-            // EFPE
+            // AssemblyInfo
             // 
+            this.Controls.AddRange(new System.Windows.Forms.Control[] {
+                                                                          this.lvProp});
             this.Icon = ((System.Drawing.Bitmap)(resources.GetObject("$this.Icon")));
             this.Name = "EFPE";
             this.Text = "Properties";
@@ -60,7 +82,11 @@ namespace EFPE {
                     if (prop.Description is null || prop.Description.DisplayName is null) continue;
                     if (prop.ValueAsObject is null) continue;
                     try {
-                        AddProperty(prop.Description.DisplayName, prop.ValueAsObject.ToString());
+                        //if (prop.ValueType == typeof(System.String[])) {
+                        //    AddProperty(prop.Description.DisplayName, string.Join(", ", prop.ValueAsObject));
+                        //} else {
+                            AddProperty(prop.Description.DisplayName, prop.ValueAsObject);
+                        //}
                     } catch (Exception ex) {
                         AddProperty(prop.Description.DisplayName, $"[E] {ex.Message}");
                     }
@@ -88,7 +114,7 @@ namespace EFPE {
         void AddProperty(string propName, object propValue) {
             if (string.IsNullOrWhiteSpace(propName) || propValue is null) return;
             ListViewItem item = lvProp.Items.Add(propName);
-            item.SubItems.Add(propValue.ToString());
+            item.SubItems.Add(propValue.ToJSON());
         }
 
         private void lvProp_SelectedIndexChanged(object sender, System.EventArgs e) {
