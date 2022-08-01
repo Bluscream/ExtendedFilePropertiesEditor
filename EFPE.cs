@@ -25,47 +25,47 @@ namespace EFPE {
 
         private void InitializeComponent() {
             System.Resources.ResourceManager resources = new System.Resources.ResourceManager(typeof(EFPE));
-            this.lvProp = new SMK_EditListView() as SMK_EditListView; // new ListView();
+            lvProp = new SMK_EditListView(); // new ListView();
             // this.lvProp.OnItemEdited += OnItemEdited;
-            this.propColumn = new System.Windows.Forms.ColumnHeader();
-            this.ValueColumn = new System.Windows.Forms.ColumnHeader();
-            this.SuspendLayout();
+            propColumn = new System.Windows.Forms.ColumnHeader();
+            ValueColumn = new System.Windows.Forms.ColumnHeader();
+            SuspendLayout();
             // 
             // lvProp
             // 
-            this.lvProp.Columns.Clear();
-            this.lvProp.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-                                                                                     this.propColumn,
-                                                                                     this.ValueColumn});
-            this.lvProp.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lvProp.Name = "lvProp";
-            this.lvProp.Size = new System.Drawing.Size(350, 450);
-            this.lvProp.TabIndex = 0;
-            this.lvProp.View = System.Windows.Forms.View.Details;
-            this.lvProp.SelectedIndexChanged += new System.EventHandler(this.lvProp_SelectedIndexChanged);
+            lvProp.Columns.Clear();
+            lvProp.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+                                                                                     propColumn,
+                                                                                     ValueColumn});
+            lvProp.Dock = System.Windows.Forms.DockStyle.Fill;
+            lvProp.Name = "lvProp";
+            lvProp.Size = new System.Drawing.Size(350, 450);
+            lvProp.TabIndex = 0;
+            lvProp.View = System.Windows.Forms.View.Details;
+            lvProp.SelectedIndexChanged += new System.EventHandler(lvProp_SelectedIndexChanged);
             // 
             // propColumn
             // 
-            this.propColumn.Text = "Property";
-            this.propColumn.Width = 145;
+            propColumn.Text = "Property";
+            propColumn.Width = 145;
             // 
             // ValueColumn
             // 
-            this.ValueColumn.Text = "Value";
-            this.ValueColumn.Width = 185;
+            ValueColumn.Text = "Value";
+            ValueColumn.Width = 185;
             // 
             // AssemblyInfo
             // 
-            this.Controls.AddRange(new System.Windows.Forms.Control[] {
-                                                                          this.lvProp});
+            Controls.AddRange(new System.Windows.Forms.Control[] {
+                                                                          lvProp});
             // this.Icon = ((System.Drawing.Bitmap)(resources.GetObject("$this.Icon")));
-            this.Name = "EFPE";
-            this.Text = "Properties";
-            this.Load += new System.EventHandler(this.XYZPropertySheetExtension_Load);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
-            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.EFPE_KeyPress);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.EFPE_KeyEvent);
-            this.ResumeLayout(false);
+            Name = "EFPE";
+            Text = "Properties";
+            Load += new System.EventHandler(XYZPropertySheetExtension_Load);
+            KeyDown += new System.Windows.Forms.KeyEventHandler(EFPE_KeyEvent);
+            KeyPress += new System.Windows.Forms.KeyPressEventHandler(EFPE_KeyPress);
+            KeyUp += new System.Windows.Forms.KeyEventHandler(EFPE_KeyEvent);
+            ResumeLayout(false);
 
         }
 
@@ -78,11 +78,17 @@ namespace EFPE {
 
         private void LoadProperties() {
             try {
-                var file = ShellFile.FromFilePath(TargetFiles[0]);
+                ShellFile file = ShellFile.FromFilePath(TargetFiles[0]);
                 lvProp.Items.Clear();
-                foreach (var prop in file.Properties.DefaultPropertyCollection) {
-                    if (prop.Description?.DisplayName is null) continue;
-                    if (prop.ValueAsObject is null) continue;
+                foreach (IShellProperty prop in file.Properties.DefaultPropertyCollection) {
+                    if (prop.Description?.DisplayName is null) {
+                        continue;
+                    }
+
+                    if (prop.ValueAsObject is null) {
+                        continue;
+                    }
+
                     try {
                         //if (prop.ValueType == typeof(System.String[])) {
                         //    AddProperty(prop.Description.DisplayName, string.Join(", ", prop.ValueAsObject));
@@ -108,16 +114,24 @@ namespace EFPE {
             }
         }
 
-        void AddProperty(string propName, string propValue, object tag = null) {
-            if (string.IsNullOrWhiteSpace(propName) || propValue is null) return;
+        private void AddProperty(string propName, string propValue, object tag = null) {
+            if (string.IsNullOrWhiteSpace(propName) || propValue is null) {
+                return;
+            }
+
             ListViewItem item = lvProp.Items.Add(propName);
             item.Tag = tag;
-            item.SubItems.Add(propValue);
+            _ = item.SubItems.Add(propValue);
         }
 
-        void AddProperty(IShellProperty prop) {
-            if (prop.Description is null || prop.Description.DisplayName is null) return;
-            if (prop.ValueAsObject is null) return;
+        private void AddProperty(IShellProperty prop) {
+            if (prop.Description is null || prop.Description.DisplayName is null) {
+                return;
+            }
+
+            if (prop.ValueAsObject is null) {
+                return;
+            }
 #if DEBUG
             AddProperty(prop.CanonicalName, prop.ValueAsObject.ToJSON(), prop);
 #else
@@ -139,47 +153,66 @@ namespace EFPE {
             try {
                 if (prop.ValueAsObject.ToJSON() != json) {
                     if (prop.CanonicalName == file.Properties.System.Author.CanonicalName) {
-                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.Author.ClearValue();
-                        else
+                        if (string.IsNullOrWhiteSpace(json)) {
+                            file.Properties.System.Author.ClearValue();
+                        } else {
                             file.Properties.System.Author.Value = json.FromJSON();
+                        }
                     } else if (prop.CanonicalName == file.Properties.System.FileVersion.CanonicalName) {
-                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.FileVersion.ClearValue();
-                        else
+                        if (string.IsNullOrWhiteSpace(json)) {
+                            file.Properties.System.FileVersion.ClearValue();
+                        } else {
                             file.Properties.System.FileVersion.Value = json.FromJSON();
+                        }
                     } else if (prop.CanonicalName == file.Properties.System.Software.ProductName.CanonicalName) {
-                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.Software.ProductName.ClearValue();
-                        else
+                        if (string.IsNullOrWhiteSpace(json)) {
+                            file.Properties.System.Software.ProductName.ClearValue();
+                        } else {
                             file.Properties.System.Software.ProductName.Value = json.FromJSON();
+                        }
                     } else if (prop.CanonicalName == file.Properties.System.InternalName.CanonicalName) {
-                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.InternalName.ClearValue();
-                        else file.Properties.System.InternalName.Value = json.FromJSON();
+                        if (string.IsNullOrWhiteSpace(json)) {
+                            file.Properties.System.InternalName.ClearValue();
+                        } else {
+                            file.Properties.System.InternalName.Value = json.FromJSON();
+                        }
                     } else if (prop.CanonicalName == file.Properties.System.DateCreated.CanonicalName) {
-                        if (string.IsNullOrWhiteSpace(json)) file.Properties.System.DateCreated.ClearValue();
-                        else file.Properties.System.DateCreated.Value = json.FromJSON();
+                        if (string.IsNullOrWhiteSpace(json)) {
+                            file.Properties.System.DateCreated.ClearValue();
+                        } else {
+                            file.Properties.System.DateCreated.Value = json.FromJSON();
+                        }
                     }
                 }
             } catch (Exception ex) {
-                MessageBox.Show($"Failed to set prop \"{prop.CanonicalName}\"\n\n{ex}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show($"Failed to set prop \"{prop.CanonicalName}\"\n\n{ex}", "EFPE ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             return true;
         }
 
         protected override NotifyResult OnApply() {
-            var result = NotifyResult.NoError;
-            foreach (var _file in TargetFiles) {
-                var file = ShellFile.FromFilePath(_file);
+            NotifyResult result = NotifyResult.NoError;
+            foreach (string _file in TargetFiles) {
+                ShellFile file = ShellFile.FromFilePath(_file);
                 foreach (ListViewItem item in lvProp.Items) {
-                    if (item.Tag is null) continue;
-                    var prop = item.Tag as IShellProperty;
-                    var json = item.SubItems[1].Text;
+                    if (item.Tag is null) {
+                        continue;
+                    }
+
+                    IShellProperty prop = item.Tag as IShellProperty;
+                    string json = item.SubItems[1].Text;
                     if (prop.ValueAsObject.ToJSON() != json) {
-                        if (!SetProp(file, prop, json))
+                        if (!SetProp(file, prop, json)) {
                             result = NotifyResult.Invalid;
+                        }
                     }
                 }
             }
-            if (result == NotifyResult.Invalid) ResetProperties();
+            if (result == NotifyResult.Invalid) {
+                ResetProperties();
+            }
+
             return result;
         }
 

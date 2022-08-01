@@ -83,7 +83,7 @@ namespace Bluscream {
         public static void AppendLine(this FileInfo file, string line) {
             try {
                 if (!file.Exists) {
-                    file.Create();
+                    _ = file.Create();
                 }
 
                 File.AppendAllLines(file.FullName, new[] { line });
@@ -108,7 +108,7 @@ namespace Bluscream {
         }
 
         public static string ToJSON(this object obj, bool indented = true) {
-            return JsonConvert.SerializeObject(obj, (indented ? Formatting.Indented : Formatting.None), new JsonConverter[] { new StringEnumConverter() });
+            return JsonConvert.SerializeObject(obj, indented ? Formatting.Indented : Formatting.None, new JsonConverter[] { new StringEnumConverter() });
         }
 
         public static dynamic FromJSON(this string json) {
@@ -153,11 +153,7 @@ namespace Bluscream {
         }
 
         public static string[] Split(this string source, string split, int count = -1, StringSplitOptions options = StringSplitOptions.None) {
-            if (count != -1) {
-                return source.Split(new[] { split }, count, options);
-            }
-
-            return source.Split(new[] { split }, options);
+            return count != -1 ? source.Split(new[] { split }, count, options) : source.Split(new[] { split }, options);
         }
 
         public static string Remove(this string Source, string Replace) {
